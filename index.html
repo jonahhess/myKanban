@@ -370,6 +370,8 @@
           const colEl = document.createElement("div");
           colEl.className = "column";
           colEl.dataset.column = col;
+          colEl.addEventListener("dragover", onDragOver);
+          colEl.addEventListener("drop", onDrop);
 
           const header = document.createElement("h2");
           header.textContent = col;
@@ -515,6 +517,8 @@
               el.textContent = card.title;
               el.dataset.id = card.id;
               el.style.backgroundColor = card.color || "#e9ecf1";
+              el.draggable = "true";
+              el.addEventListener("dragstart", onDragStart);
 
               if (card.assignedTo) {
                 const userLabel = load(USERS_KEY).find(
@@ -659,6 +663,45 @@
 
         save(DATA, data);
         render(card.id);
+      }
+
+      let draggedCardId = null;
+
+      function onDragStart(e) {
+        draggedCardId = e.target.dataset.id;
+        e.dataTransfer.effectAllowed = "move";
+      }
+
+      function onDragOver(e) {
+        e.preventDefault(); // required to allow drop
+        e.dataTransfer.dropEffect = "move";
+      }
+
+      function onDrop(e) {
+        e.preventDefault();
+
+        const targetColumn = e.currentTarget.dataset.column;
+        const data = load(DATA);
+
+        const card = data.find((c) => c.id === draggedCardId);
+        if (!card || card.column === targetColumn) return;
+
+        pushUndo();
+
+        card.column = targetColumn;
+
+        card.order =
+          Math.max(
+            -1,
+            ...data
+              .filter((c) => c.column === targetColumn)
+              .map((c) => c.order),
+          ) + 1;
+
+        save(DATA, data);
+        render(card.id);
+
+        draggedCardId = null;
       }
 
       function deleteFocusedCard() {
