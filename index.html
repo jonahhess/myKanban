@@ -586,6 +586,7 @@
             const updated = users.filter((x) => x.id !== u.id);
             save(USERS_KEY, updated);
             renderUserList();
+            populateFilterDropdown();
             render();
           };
 
@@ -726,11 +727,15 @@
 
       // listeners
       filterSelect.onchange = () => render();
+
       manageUsersBtn.onclick = () => {
         renderUserList();
         userDialog.showModal();
       };
-      addUserBtn.onclick = () => addUser();
+      addUserBtn.onclick = () => {
+        addUser();
+        populateFilterDropdown();
+      };
 
       closeUserDialog.onclick = () => userDialog.close();
 
